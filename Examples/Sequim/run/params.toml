@@ -1,0 +1,61 @@
+# ============================================================
+# Profish - PINN4AcousticTag configuration
+# ============================================================
+
+# --- I/O paths (relative to this file) ----------------------
+output_folder             = ["results"]
+phoneFile                 = ["../config/sequim_testing_node_locs_w_beacons.csv"]
+tagFile                   = ["../config/DriftingTags.csv"]
+dataFolder                = [""]
+testFile                  = ["../config/EA_test_description.csv"]
+GPSFile                   = ["../config/drifting_GPS_day1_local_system.csv"]
+
+# --- Tag selection ------------------------------------------
+TagID     = [0]
+badPhones = [[]]
+
+# --- Timing (local time, UTC offset = timeZone) -------------
+timeZone   = [0]
+time_start = ["2024-2-21 11:30:00"]
+time_end   = ["2024-2-21 13:30:00"]
+
+# --- Acoustic / geometry ------------------------------------
+temperature_ref           = [8]
+tol_signal                = [0.3]
+tol_signal_beacon_preSync = [5]
+dis_detect                = [300]
+region_lb                 = [[-200, -200, -20]]
+region_ub                 = [[200, 200, 20]]
+dam                       = ["Sequim"]
+ignoreZ                   = ["False"]
+ignorePhoneNum            = [0]
+err_GPS                   = [0]
+origin_idx                = [1]
+theta                     = [0]
+
+# --- Track splitting ----------------------------------------
+split_by_TestFile = ["False"]
+split_by_tol      = ["False"]
+tol_split         = [300]
+
+# --- NN architecture ----------------------------------------
+first_layer_nodes  = [200]
+hidden_layer_nodes = [128]
+hidden_layers      = [3]
+last_layer_nodes   = [3]
+
+# --- Training -----------------------------------------------
+nIterAdam      = [10000]
+nIterBFGS      = [50]
+lr             = [0.001]
+weight_decay   = [1e-6]
+nIterAdam_sync = [5000]
+
+# --- Method -------------------------------------------------
+trackMethod = ["NN"]  # "AML" = fast pointwise solver; "NN" = deep network based batchwise solver
+aml_n_jobs  = [-1]     # -1 = all CPU cores
+
+# --- UQ -----------------------------------------------------
+nSamples    = [1] # "nSamples=1" = NN solver; "nSamples>1"= NN+ solver
+sampleMethod= ["fixed distance"]
+uq_std = [1.0]  # perturbation size for fixed-distance UQ sampling

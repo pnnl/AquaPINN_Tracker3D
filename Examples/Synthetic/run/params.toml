@@ -1,0 +1,67 @@
+# ============================================================
+# Levy Park — PINN4AcousticTag configuration
+#
+# All values must be lists. load_params() takes the Cartesian
+# product of all lists to produce one param set per combination.
+# Single-element lists = one run.
+# ============================================================
+
+# --- I/O paths (relative to main.py) ------------------------
+output_folder             = ["results"]
+phoneFile                 = ["../config/SLAM_auto_locs_w_beacons.csv"]
+tagFile                   = ["../config/levy_park_drifting_tags.csv"]
+dataFolder                = ["../data"]
+testFile                  = [""]          # test segment file, "" = disabled 
+GPSFile                   = ["../config/MLATS_input_0-15cm_accuracy_LocalTime_gps.csv"]
+
+# --- Tag selection ------------------------------------------
+TagID     = [-1]    # -1 = all tags; 0/1/2/... = specific tag index
+badPhones = [[]]    # phone IDs to exclude, e.g. [[3, 7]] to drop phones 3 and 7
+
+# --- Timing (local time, UTC offset = timeZone) -------------
+timeZone   = [0]                    # PDT = UTC-0 
+time_start = ["2023-10-16 15:30:00"]
+time_end   = ["2023-10-16 16:00:00"]
+
+# --- Physics ------------------------------------------------
+temperature_ref           = [8]  # water temp °C → Marczak sound speed
+tol_signal                = [0.3]    # TDOA filter tolerance (s) for fish tracking
+tol_signal_beacon_preSync = [10.0]   # looser tolerance for beacon pre-sync pairing
+dis_detect                = [500.0]  # max source-receiver distance (m)
+region_lb                 = [[-200, -200, -20]]  # 3D search box lower bound (m, ENU)
+region_ub                 = [[ 200,  200,  20]]  # upper bound
+dam                       = ["Synthetic"]
+ignoreZ                   = ["false"] # "true" = 2D only
+ignorePhoneNum            = [0]       # min receivers per ping; 0 = keep all
+err_GPS                   = [0]       # 0 = fix receiver positions during sync
+
+# --- Track splitting ----------------------------------------
+split_by_TestFile = ["false"]
+split_by_tol      = ["false"]
+tol_split         = [300]    # gap threshold (s) when split_by_tol = "true"
+
+# --- NN architecture (only used when trackMethod = "NN") ----
+first_layer_nodes  = [200]   # input projection / Fourier feature width
+hidden_layer_nodes = [128]   # width of each hidden layer
+hidden_layers      = [3]     # → architecture: [200, 128, 128, 128, 3]
+last_layer_nodes   = [3]     # output: x, y, z
+period_factor      = [300]   # scales Vel_ref from valid detections during tracking
+
+# --- Training -----------------------------------------------
+nIterAdam      = [10000]  # tracker Adam epochs (early stopping may cut short)
+nIterBFGS      = [50]     # tracker L-BFGS steps (also fallback for nIterBFGS_sync)
+lr             = [0.001]
+weight_decay   = [1e-6]    # L2 regularisation; 0 = off
+nIterAdam_sync = [5000]   # sync model Adam budget (separate from tracker)
+distance_threshold   = [3.0]  # distance threshold used in residual reweighting
+std_deviation_factor = [5.0]  # controls the steepness of learned tau scaling
+time_shift_factor    = [0.3]  # max learned ping-time correction magnitude
+
+# --- Method -------------------------------------------------
+trackMethod = ["NN"]  # "AML" = fast pointwise solver; "NN" = deep network based batchwise solver
+aml_n_jobs  = [-1]     # -1 = all CPU cores
+
+# --- UQ -----------------------------------------------------
+nSamples    = [5]
+sampleMethod= ["fixed distance"]
+uq_std = [1.0]  # perturbation size for fixed-distance UQ sampling

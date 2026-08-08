@@ -1,0 +1,79 @@
+# =============================================================================
+# compare.toml — Sequim post-processing comparison configuration
+#
+# Used by:
+#   run_comparison.py  (entry point)
+#   compareGPS.py      (PostProcess package)
+#   report.py          (summary statistics)
+#
+# All paths are relative to this file's directory (Examples/Sequim/run/).
+# =============================================================================
+
+# Pipeline params file (provides phoneFile, tagFile, GPSFile, time window, etc.)
+params_file = "params.toml"
+
+# Output directory for plots and Stat.pickle
+out_root_dir = "results/comparison"
+
+# ---------------------------------------------------------------------------
+# Background image for map overlay plot (optional).
+# Set img_path = "" to skip the background overlay.
+# ---------------------------------------------------------------------------
+img_path = "../config/Sequim_400_400.png"
+
+# ---------------------------------------------------------------------------
+# GPS reference track.
+# gps_file_pattern supports {tagID} and {tagCode} substitution.
+# Leave empty ("") to use GPSFile from params.toml for all tags.
+# ---------------------------------------------------------------------------
+gps_file_pattern = ""   # uses GPSFile from params.toml
+
+# ---------------------------------------------------------------------------
+# Tag IDs to process (0-based indices into tagFile).
+# Leave empty ([]) to process all tags.
+# ---------------------------------------------------------------------------
+tag_ids = []
+
+# ---------------------------------------------------------------------------
+# Methods to compare.
+# Each key is the method label shown in plots.
+# Each value is the folder (relative to this file) containing result CSVs.
+# The script searches recursively for *<tagCode>*<method>*.csv inside each folder.
+# ---------------------------------------------------------------------------
+[methods]
+AML = "results/Track/track"     # AquaPINN AML solver output
+NN  = "results/Track/track"     # AquaPINN NN solver output
+
+# ---------------------------------------------------------------------------
+# pixel2Phone1 / pixel2Phone2: two reference points that map pixel coordinates
+# to real-world phone coordinates (used to geo-register the background image).
+#   px  = [col, row] pixel coordinates in the image (400x400 px)
+#   phone_id = integer phone ID whose ENE location is the real-world anchor
+# Phone 1 (top-left):  pixel ~[148, 100],  ENE=(12.5, 236.68)
+# Phone 3 (mid-right): pixel ~[305, 178],  ENE=(195.8, 134.28)
+# ---------------------------------------------------------------------------
+[pixel2Phone1]
+px       = [148, 100]
+phone_id = 1
+
+[pixel2Phone2]
+px       = [305, 178]
+phone_id = 3
+
+# ---------------------------------------------------------------------------
+# Plot types to generate (all default to true except xyz).
+# ---------------------------------------------------------------------------
+[plots]
+map     = true    # background-image overlay (requires img_path + pixel2Phone1/2)
+compare = true    # all-methods-in-one-figure (XY map + X/Y time-series + error box)
+xyz     = false   # X/Y/Z time-series stacked plot (set to true to enable)
+
+# ---------------------------------------------------------------------------
+# Report settings (used by report.py)
+# ---------------------------------------------------------------------------
+[report]
+# Segment names to include in the summary table (must match EA test period names).
+segments = ["drift_Y1", "drift_Y0", "drift_X2", "drift_X1", "drift_X0", "All"]
+
+# Methods to include in the report table (subset of [methods] keys above).
+methods  = ["AML", "NN"]

@@ -1,0 +1,25 @@
+# Synthetic Critical post-processing comparison configuration.
+#
+# This baseline configuration is also used as the template by
+# run_comparison.py for the other Critical scenarios.
+
+params_file = "params_comparison.toml"
+out_root_dir = "results/Critical/comparisonGPS/baseline"
+
+# No background image is used for the Synthetic data.
+img_path = ""
+gps_file_pattern = ""
+tag_ids = []
+
+[methods]
+NN = "results/Critical/baseline/Track/track"
+NNplus = "results/Critical/baseline/Track/track"
+
+[plots]
+map = false
+compare = true
+xyz = true
+
+[report]
+segments = ["All"]
+methods = ["NN", "NNplus"]
