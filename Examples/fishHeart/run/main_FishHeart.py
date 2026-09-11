@@ -62,7 +62,7 @@ logger = getLogger(
 # ---------------------------------------------------------------------------
 # Pipeline flags
 # ---------------------------------------------------------------------------
-doSync       = False   # set False if synced phone CSV already exists
+doSync       = True   # a clean clone must create the synced phone CSV
 trackBeacon  = False  # set True to also track beacon tags
 
 # ---------------------------------------------------------------------------

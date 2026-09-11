@@ -92,11 +92,11 @@ python AquaPINN_Tracker3D/AquaPINN_Tracker3D/PostProcess/report.py Examples/fish
 
 - Python ≥ 3.11 (or Python ≥ 3.8 with `pip install tomli`)
 - PyTorch (CUDA recommended)
-- NumPy, SciPy, pandas, matplotlib, utm
+- NumPy, SciPy, pandas, matplotlib, utm, tomli, networkx, scikit-learn, tqdm, six
 
 Install dependencies:
 ```bash
-pip install torch numpy scipy pandas matplotlib utm tomli
+pip install torch numpy scipy pandas matplotlib utm tomli networkx scikit-learn tqdm six
 ```
 
 ---

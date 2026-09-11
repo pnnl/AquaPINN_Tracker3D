@@ -25,7 +25,7 @@ except ImportError:
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = SCRIPT_DIR.parent
-DATASET_DIRS = [PROJECT_DIR / "data" / "Critical", PROJECT_DIR / "data" / "CRLB"][1:2]
+DATASET_DIRS = [PROJECT_DIR / "data" / "Critical"]
 PHONE_FILE = PROJECT_DIR / "dataGenerator" / "Cabot_Station_hydrophone_configuration_update_3.csv"
 PARAM_TEMPLATE_FILE = SCRIPT_DIR / "params.toml"
 
@@ -216,4 +216,4 @@ if __name__ == "__main__":
     parser.add_argument("--group-id", type=int, default=0, help="ID of the job group to run (0-based, default: 0).")
     parser.add_argument("--group-size", type=int, default=1, help="Total number of job groups (default: 1).")
     args = parser.parse_args()
-    main(args.group_id, args.group_size)
+    raise SystemExit(main(args.group_id, args.group_size))

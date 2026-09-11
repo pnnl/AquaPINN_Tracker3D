@@ -109,7 +109,7 @@ def draw_graph(adj_matrix, IDs, edge_labels=None,
     #pos = nx.fruchterman_reingold_layout(G) #(G, k=1/adj_matrix.shape[0], seed=432)
     nx.draw(G_actual, pos, labels=dict(zip(range(len(IDs)), IDs)),
             with_labels=True, node_size=700, node_color='skyblue',
-             font_size=vertexFontSize, font_color='black', font_weight='bold', arrows='True')
+             font_size=vertexFontSize, font_color='black', font_weight='bold', arrows=True)
     if edge_labels is not None:
         nx.draw_networkx_edge_labels(G_actual,pos, edge_labels=edge_labels,
                                      font_size=edgeFontSize, font_color='red')

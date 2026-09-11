@@ -106,8 +106,11 @@ time_end   = params.get('time_end',   None)
 
 # ── Main comparison loop ──────────────────────────────────────────────────────
 res_all = defaultdict(dict)
+tag_ids = set(cfg.get('tag_ids', []))
 
 for tagID, (tagCode, pri_fallback) in enumerate(zip(tagCodes, PRI_list)):
+    if tag_ids and tagID not in tag_ids:
+        continue
     print(f"\nTag {tagID}: {tagCode}  PRI={pri_fallback}s (from tagFile, may be overridden)")
     plt.close('all')
 

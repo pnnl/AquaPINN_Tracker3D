@@ -34,7 +34,7 @@ PRI = 2
 
 
 # Critical tests
-outputFolder= os.path.join(current_dir, '..', 'data','Critical_hhh' )
+outputFolder= os.path.join(current_dir, '..', 'data','Critical' )
 Scenarios ={i:None for i in [1,4,5,9]} #[1, 2, 3, 4, 5, 6, 7, 8]}
 draw_tracks = True
 

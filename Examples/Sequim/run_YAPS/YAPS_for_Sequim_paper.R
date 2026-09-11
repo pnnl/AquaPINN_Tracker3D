@@ -146,6 +146,12 @@ for (tag_idx in seq_along(focal_tags)) {
 
   synced_dat_tag <- detections_synced[detections_synced$tag == focal_tag, ]
 
+  if (nrow(synced_dat_tag) == 0L) {
+    message(sprintf("Skipping tag %d (%s): no detections in the selected time window.",
+                    focal_tag, focal_tag_code))
+    next
+  }
+
   if (focal_tag %in% c(0, 1)) {
     PRI <- 1; rbi_min <- 0.9;  rbi_max <- 1.1
   } else if (focal_tag %in% c(2, 5, 7)) {

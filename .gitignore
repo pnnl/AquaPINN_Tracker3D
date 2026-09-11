@@ -1,4 +1,7 @@
 __pycache__/
+.venv/
+.r-env/
+.tools/
 Examples/Synthetic/data/
 results/
 *.out
