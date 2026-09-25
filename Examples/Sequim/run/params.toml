@@ -11,7 +11,14 @@ testFile                  = ["../config/EA_test_description.csv"]
 GPSFile                   = ["../config/drifting_GPS_day1_local_system.csv"]
 
 # --- Tag selection ------------------------------------------
-TagID     = [0]
+# Paper Table 1 (Salish Sea sea trial) analyses five tags.  After the tag list
+# was trimmed to that subset, TagID indexes config/DriftingTags.csv as:
+#   0 = G7270F55D (SS400,  PRI 3)   3 = G72679FC4 (SSREF2, PRI 3)
+#   1 = G726D7656 (SS400,  PRI 3)   4 = G720EA94F (MSF,    PRI 1)
+#   2 = G726777EF (SSREF1, PRI 2)
+# Set TagID = [-1] to track all five in one run (needed to reproduce paper
+# Fig. 6a / Table 1, which report all five tags) -- budget ~10 min per tag.
+TagID     = [2]
 badPhones = [[]]
 
 # --- Timing (local time, UTC offset = timeZone) -------------
@@ -27,7 +34,12 @@ dis_detect                = [300]
 region_lb                 = [[-200, -200, -20]]
 region_ub                 = [[200, 200, 20]]
 dam                       = ["Sequim"]
-ignoreZ                   = ["False"]
+# The Sequim array is effectively coplanar (receiver z spans only 5.6 m over a
+# ~250 m footprint), so the paper evaluates horizontal localization only
+# (p. 21) and the YAPS reference solver is 2-D (p. 14).  Solving in 3-D here
+# starves the solver: AML drops to 17 fixes / 51.5 % efficiency versus 201
+# fixes / 100 % in 2-D on the same data.
+ignoreZ                   = ["True"]
 ignorePhoneNum            = [0]
 err_GPS                   = [0]
 origin_idx                = [1]

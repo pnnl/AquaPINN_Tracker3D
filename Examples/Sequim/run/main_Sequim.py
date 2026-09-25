@@ -19,7 +19,7 @@ import os
 import sys
 from pathlib import Path
 
-from convertDetections import convert_mat_to_synced_pickle
+from convertDetections import convert_mat_to_synced_pickle, find_mat_tag_indices
 
 # ---------------------------------------------------------------------------
 # Resolve paths and change CWD to the run/ folder so that all relative paths
@@ -56,7 +56,10 @@ config.oneKey_configure(use_cuda=True, precision=64, seed=42)
 
 train_params = load_params(param_file)[0]
 
-TagStr = "Tag" + str(train_params["TagID"])
+# TagID = -1 means "track every tag in the tag file" (handled inside
+# tracker.run, which reads the tag count from the synced-decodes pickle).
+_track_all = int(train_params["TagID"]) == -1
+TagStr = "AllTags" if _track_all else "Tag" + str(train_params["TagID"])
 logger = getLogger(
     logFile=os.path.join(train_params["output_folder"], f"history_{TagStr}.log")
 )
@@ -110,12 +113,63 @@ synced_pickle = loc_sys.getSyncedDecodesFile(
 )
 
 # ---------------------------------------------------------------------------
-# Convert .mat → synced pickle, then run the tracker
+# Restrict processing to the tags listed in tagFile
+# ---------------------------------------------------------------------------
+# The raw .mat file holds every tag detected during the deployment (ten for
+# this dataset), but config/DriftingTags.csv lists only the five analysed in
+# the manuscript (Table 1, Salish Sea sea trial):
+#
+#   code        type    PRI (s)
+#   ----------  ------  -------
+#   G7270F55D   SS400        3
+#   G726D7656   SS400        3
+#   G726777EF   SSREF1       2
+#   G72679FC4   SSREF2       3
+#   G720EA94F   MSF          1
+#
+# The tagFile is the single source of truth: we look each code up in the .mat
+# 'code' field rather than hard-coding positional indices, so editing the CSV
+# is enough to change the tag set.  convert_mat_to_synced_pickle() keeps the
+# tags in ascending .mat order, which is why the codes below are sorted by
+# their resolved index before conversion -- that keeps pickle entry i aligned
+# with tagFile row i, and hence with TagID i.
+tag_codes = list(loc_sys.tagInfo["code"])
+
+_mat_indices = find_mat_tag_indices(mat_file, tag_codes)
+if _mat_indices != sorted(_mat_indices):
+    raise ValueError(
+        "tagFile rows are not in the same order as the .mat struct.\n"
+        f"  tagFile order : {tag_codes}\n"
+        f"  .mat indices  : {_mat_indices}\n"
+        "Reorder config/DriftingTags.csv by ascending .mat index so that "
+        "TagID stays aligned with the converted pickle."
+    )
+
+if _track_all:
+    logger.info(
+        "Sequim: TagID = -1 -> tracking all %d tag(s) from %s: %s",
+        len(tag_codes), train_params["tagFile"], tag_codes,
+    )
+else:
+    _tid = int(train_params["TagID"])
+    assert 0 <= _tid < len(tag_codes), (
+        f"TagID = {_tid} is out of range for a {len(tag_codes)}-tag tagFile "
+        f"({train_params['tagFile']}). Valid values are 0..{len(tag_codes)-1}, "
+        "or -1 to track all tags."
+    )
+    logger.info(
+        "Sequim: TagID = %d -> tracking %s (1 of %d tags in %s)",
+        _tid, tag_codes[_tid], len(tag_codes), train_params["tagFile"],
+    )
+
+# ---------------------------------------------------------------------------
+# Convert .mat -> synced pickle, then run the tracker
 # ---------------------------------------------------------------------------
 convert_mat_to_synced_pickle(
-    mat_file   = mat_file,
-    out_pickle = synced_pickle,
-    badPhones  = train_params.get("badPhones", []),
+    mat_file    = mat_file,
+    out_pickle  = synced_pickle,
+    badPhones   = train_params.get("badPhones", []),
+    tagIndices  = _mat_indices,
 )
 
 tracker.run(param_file, loc_sys)

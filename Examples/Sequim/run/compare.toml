@@ -31,8 +31,13 @@ gps_file_pattern = ""   # uses GPSFile from params.toml
 # ---------------------------------------------------------------------------
 # Tag IDs to process (0-based indices into tagFile).
 # Leave empty ([]) to process all tags.
+# This must list only the tags actually solved by the tracker -- i.e. it should
+# track params.toml's TagID.  Listing unsolved tags just produces `nan` rows.
+# The tag file holds the paper's five Salish Sea tags (Table 1):
+#   0 = G7270F55D   1 = G726D7656   2 = G726777EF   3 = G72679FC4   4 = G720EA94F
+# params.toml currently solves TagID = [2] (G726777EF), so:
 # ---------------------------------------------------------------------------
-tag_ids = [0]
+tag_ids = [2]
 
 # ---------------------------------------------------------------------------
 # Methods to compare.

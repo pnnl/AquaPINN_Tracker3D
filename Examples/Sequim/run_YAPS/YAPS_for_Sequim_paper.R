@@ -78,7 +78,7 @@ ref <- hydros[idx == 1L]
 detections <- as.data.table(read.csv(DECODES_FILE))
 detections$ts        <- as.POSIXct(detections$ts,        tz = "UTC")
 detections$serial    <- as.numeric(detections$serial)
-detections$tag       <- as.numeric(detections$tag)
+detections$tagcode   <- trimws(as.character(detections$tagcode))
 detections$hydro_idx <- as.numeric(detections$hydro_idx)
 detections$epo       <- as.numeric(detections$epo)
 detections[, ts_epo  := as.integer(ts)]
@@ -130,41 +130,54 @@ detections_synced <- detections
 # -----------------------------------------------------------------------------
 # 6. Tag table
 # -----------------------------------------------------------------------------
-focal_tags      <- c(0,           1,           2,           3,           4,
-                     5,           6,           7,           8)
-focal_tags_code <- c('G72285C6F', 'G72D1B46F', 'G7270F55D', 'G7254813E', 'G724601CF',
-                     'G726D7656', 'G726777EF', 'G72679FC4', 'G720EA94F')
+# Paper Table 1 (Salish Sea sea trial) analyses five tags.  Tags are identified
+# by CODE throughout: decodes4YAPS.csv carries a 'tagcode' column that is 1:1
+# with its numeric 'tag' column, so the numeric ids never need to be restated
+# here.  That also keeps this script independent of the Python-side TagID
+# numbering, which differs because config/DriftingTags.csv and the .mat file
+# were subset to these five tags while decodes4YAPS.csv retains the original ids.
+#
+# Each entry gives the burst interval; rbi_min/rbi_max bracket the measured
+# interval.  PRI follows paper Table 1 except where the data disagree:
+#   G726777EF: Table 1 lists PRI 2 s, but the decoded data show 1.86 s -- the
+#   value below matches the data (see code review section 4.1).
+tag_pri <- list(
+  G7270F55D = list(PRI = 3.00, rbi_min = 2.90, rbi_max = 3.10),
+  G726D7656 = list(PRI = 3.00, rbi_min = 2.90, rbi_max = 3.10),
+  G726777EF = list(PRI = 1.85, rbi_min = 1.70, rbi_max = 2.30),
+  G72679FC4 = list(PRI = 3.00, rbi_min = 2.90, rbi_max = 3.10),
+  G720EA94F = list(PRI = 1.00, rbi_min = 0.98, rbi_max = 1.02)
+)
+focal_tags_code <- names(tag_pri)
+
+stopifnot("tagcode" %in% names(detections))
+missing_codes <- setdiff(focal_tags_code, unique(detections$tagcode))
+if (length(missing_codes) > 0) {
+  warning(sprintf("Tag code(s) absent from %s: %s",
+                  basename(DECODES_FILE), paste(missing_codes, collapse = ", ")))
+}
 
 # -----------------------------------------------------------------------------
 # 7. Positioning loop
 # -----------------------------------------------------------------------------
 track_solved_all <- list()
 
-for (tag_idx in seq_along(focal_tags)) {
-  focal_tag      <- focal_tags[tag_idx]
+for (tag_idx in seq_along(focal_tags_code)) {
   focal_tag_code <- focal_tags_code[tag_idx]
 
-  synced_dat_tag <- detections_synced[detections_synced$tag == focal_tag, ]
+  synced_dat_tag <- detections_synced[detections_synced$tagcode == focal_tag_code, ]
 
   if (nrow(synced_dat_tag) == 0L) {
-    message(sprintf("Skipping tag %d (%s): no detections in the selected time window.",
-                    focal_tag, focal_tag_code))
+    message(sprintf("Skipping tag %s: no detections in the selected time window.",
+                    focal_tag_code))
     next
   }
 
-  if (focal_tag %in% c(0, 1)) {
-    PRI <- 1; rbi_min <- 0.9;  rbi_max <- 1.1
-  } else if (focal_tag %in% c(2, 5, 7)) {
-    PRI <- 3; rbi_min <- 2.9;  rbi_max <- 3.1
-  } else if (focal_tag %in% c(3, 4)) {
-    PRI <- 1; rbi_min <- 1;    rbi_max <- 1
-  } else if (focal_tag %in% c(8)) {
-    PRI <- 1; rbi_min <- 0.98; rbi_max <- 1.02
-  } else if (focal_tag == 6) {
-    PRI <- 1.85; rbi_min <- 1.7; rbi_max <- 2.3
-  } else {
-    stop(sprintf("Unhandled focal_tag: %s", focal_tag))
-  }
+  PRI     <- tag_pri[[focal_tag_code]]$PRI
+  rbi_min <- tag_pri[[focal_tag_code]]$rbi_min
+  rbi_max <- tag_pri[[focal_tag_code]]$rbi_max
+  message(sprintf("Tag %s: PRI = %.2f s, rbi = [%.2f, %.2f]",
+                  focal_tag_code, PRI, rbi_min, rbi_max))
 
   synced_dat <- synced_dat_tag
   gps_track  <- gps
@@ -279,9 +292,9 @@ for (tag_idx in seq_along(focal_tags)) {
     tag_code = rep(focal_tag_code, length(track_solved$top)),
     check.names = FALSE
   )
-  write.csv(track_solved_csv,
-            sprintf("%s/tag_%d_%s.csv", OUT_DIR, tag_idx - 1, focal_tag_code),
-            row.names = FALSE)
+  out_csv <- sprintf("%s/tag_%d_%s.csv", OUT_DIR, tag_idx - 1, focal_tag_code)
+  write.csv(track_solved_csv, out_csv, row.names = FALSE)
+  message(sprintf("  wrote %s (%d rows)", basename(out_csv), nrow(track_solved_csv)))
   track_solved_all <- rbind(track_solved_all, track_solved_csv)
 }
 
